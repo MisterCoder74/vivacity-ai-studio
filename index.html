@@ -461,7 +461,7 @@ function signup(){
     fetch('auth.php?action=signup',{
         method:'POST',
         headers:{'Content-Type':'application/json'},
-        body:JSON.stringify({name,email,password})
+        body:JSON.stringify({name,email,password,password_confirm:confirm})
     })
     .then(r=>r.json())
     .then(d=>{

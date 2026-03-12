@@ -44,7 +44,7 @@ function signup_endpoint()
     $data = json_decode(file_get_contents('php://input'), true);
     if (!isset($data['name'], $data['email'], $data['password'], $data['password_confirm'])) {
         http_response_code(400);
-        echo json_encode(['error' => 'Missing required fields'], JSON_PRETTY_PRINT);
+        echo json_encode(['success' => false, 'message' => 'Missing required fields'], JSON_PRETTY_PRINT);
         return;
     }
 
@@ -55,25 +55,25 @@ function signup_endpoint()
 
     if ($name === '' || $email === '' || $password === '' || $password_confirm === '') {
         http_response_code(400);
-        echo json_encode(['error' => 'Fields cannot be empty'], JSON_PRETTY_PRINT);
+        echo json_encode(['success' => false, 'message' => 'Fields cannot be empty'], JSON_PRETTY_PRINT);
         return;
     }
 
     if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
         http_response_code(400);
-        echo json_encode(['error' => 'Invalid email format'], JSON_PRETTY_PRINT);
+        echo json_encode(['success' => false, 'message' => 'Invalid email format'], JSON_PRETTY_PRINT);
         return;
     }
 
     if (strlen($password) < PASSWORD_MIN_LENGTH) {
         http_response_code(400);
-        echo json_encode(['error' => 'Password must be at least ' . PASSWORD_MIN_LENGTH . ' characters'], JSON_PRETTY_PRINT);
+        echo json_encode(['success' => false, 'message' => 'Password must be at least ' . PASSWORD_MIN_LENGTH . ' characters'], JSON_PRETTY_PRINT);
         return;
     }
 
     if ($password !== $password_confirm) {
         http_response_code(400);
-        echo json_encode(['error' => 'Passwords do not match'], JSON_PRETTY_PRINT);
+        echo json_encode(['success' => false, 'message' => 'Passwords do not match'], JSON_PRETTY_PRINT);
         return;
     }
 
@@ -83,7 +83,7 @@ function signup_endpoint()
     foreach ($users as $u) {
         if ($u['email'] === $email) {
             http_response_code(400);
-            echo json_encode(['error' => 'Email already exists'], JSON_PRETTY_PRINT);
+            echo json_encode(['success' => false, 'message' => 'Email already exists'], JSON_PRETTY_PRINT);
             return;
         }
     }
@@ -109,7 +109,7 @@ function signup_endpoint()
     fclose($fp);
 
     // Create per‑user folder structure
-    $userBase = DATA_FOLDER . '/user_' . $user_id;
+    $userBase = DATA_DIR . '/user_' . $user_id;
     $folders  = [
         $userBase,
         $userBase . '/uploads',
@@ -157,7 +157,7 @@ function login_endpoint()
     $data = json_decode(file_get_contents('php://input'), true);
     if (!isset($data['email'], $data['password'])) {
         http_response_code(400);
-        echo json_encode(['error' => 'Missing required fields'], JSON_PRETTY_PRINT);
+        echo json_encode(['success' => false, 'message' => 'Missing required fields'], JSON_PRETTY_PRINT);
         return;
     }
 
@@ -184,6 +184,7 @@ function login_endpoint()
 
                 header('Content-Type: application/json');
                 echo json_encode([
+                    'success' => true,
                     'authenticated' => true,
                     'user' => $_SESSION['user'],
                 ], JSON_PRETTY_PRINT);
@@ -191,7 +192,7 @@ function login_endpoint()
             } else {
                 http_response_code(401);
                 header('Content-Type: application/json');
-                echo json_encode(['error' => 'Invalid credentials'], JSON_PRETTY_PRINT);
+                echo json_encode(['success' => false, 'message' => 'Invalid credentials'], JSON_PRETTY_PRINT);
                 return;
             }
         }
@@ -199,7 +200,7 @@ function login_endpoint()
 
     http_response_code(401);
     header('Content-Type: application/json');
-    echo json_encode(['error' => 'Invalid credentials'], JSON_PRETTY_PRINT);
+    echo json_encode(['success' => false, 'message' => 'Invalid credentials'], JSON_PRETTY_PRINT);
 }
 
 /* -------------------------------------------------------------------------
@@ -211,6 +212,7 @@ function session_check_endpoint()
     header('Content-Type: application/json');
     if (isset($_SESSION['user'])) {
         echo json_encode([
+            'success' => true,
             'authenticated' => true,
             'user' => $_SESSION['user'],
         ], JSON_PRETTY_PRINT);
@@ -245,7 +247,7 @@ function update_profile_endpoint()
     if (!isset($_SESSION['user'])) {
         http_response_code(401);
         header('Content-Type: application/json');
-        echo json_encode(['error' => 'Unauthorized'], JSON_PRETTY_PRINT);
+        echo json_encode(['success' => false, 'message' => 'Unauthorized'], JSON_PRETTY_PRINT);
         return;
     }
 
@@ -267,14 +269,14 @@ function update_profile_endpoint()
                 if (!password_verify($current_password, $user['password'])) {
                     http_response_code(401);
                     header('Content-Type: application/json');
-                    echo json_encode(['error' => 'Invalid current password'], JSON_PRETTY_PRINT);
+                    echo json_encode(['success' => false, 'message' => 'Invalid current password'], JSON_PRETTY_PRINT);
                     return;
                 }
 
                 if (strlen($new_password) < PASSWORD_MIN_LENGTH) {
                     http_response_code(400);
                     header('Content-Type: application/json');
-                    echo json_encode(['error' => 'Password must be at least ' . PASSWORD_MIN_LENGTH . ' characters'], JSON_PRETTY_PRINT);
+                    echo json_encode(['success' => false, 'message' => 'Password must be at least ' . PASSWORD_MIN_LENGTH . ' characters'], JSON_PRETTY_PRINT);
                     return;
                 }
 
@@ -297,7 +299,7 @@ function update_profile_endpoint()
 
     http_response_code(404);
     header('Content-Type: application/json');
-    echo json_encode(['error' => 'User not found'], JSON_PRETTY_PRINT);
+    echo json_encode(['success' => false, 'message' => 'User not found'], JSON_PRETTY_PRINT);
 }
 
 /* -------------------------------------------------------------------------
@@ -324,7 +326,7 @@ switch ($action) {
     default:
         http_response_code(400);
         header('Content-Type: application/json');
-        echo json_encode(['error' => 'Invalid action'], JSON_PRETTY_PRINT);
+        echo json_encode(['success' => false, 'message' => 'Invalid action'], JSON_PRETTY_PRINT);
         break;
 }
 ?>
