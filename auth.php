@@ -138,12 +138,13 @@ function signup_endpoint()
         }
     }
 
-    session_regenerate_id(true);
     start_vivacity_session();
+    session_regenerate_id(true);
     $_SESSION['user'] = generate_user_object($user_id, $name, $email);
 
     header('Content-Type: application/json');
     echo json_encode([
+        'success' => true,
         'authenticated' => true,
         'user' => $_SESSION['user'],
     ], JSON_PRETTY_PRINT);
@@ -178,8 +179,8 @@ function login_endpoint()
                 flock($fp, LOCK_UN);
                 fclose($fp);
 
-                session_regenerate_id(true);
                 start_vivacity_session();
+                session_regenerate_id(true);
                 $_SESSION['user'] = generate_user_object($user['user_id'], $user['name'], $email);
 
                 header('Content-Type: application/json');
@@ -212,7 +213,6 @@ function session_check_endpoint()
     header('Content-Type: application/json');
     if (isset($_SESSION['user'])) {
         echo json_encode([
-            'success' => true,
             'authenticated' => true,
             'user' => $_SESSION['user'],
         ], JSON_PRETTY_PRINT);
