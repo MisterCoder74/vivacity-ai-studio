@@ -1,0 +1,24 @@
+# VivacityAI Studio - .gitignore
+
+# User data
+data/
+
+# Config with secrets
+config.php
+
+# Upload directories
+uploads/
+cardimages/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Logs
+*.log

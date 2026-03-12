@@ -1,0 +1,645 @@
+**Refactored `tools/pipeline/index.html` (integrated with VivacityAI Studio)**  
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Web Builder Pipeline</title>
+<style>
+/* -------------------------------------------------
+   Global & Dark‑Theme Styles
+   ------------------------------------------------- */
+*{margin:0;padding:0;box-sizing:border-box;}
+body{
+  font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;
+  background:#0a0a0f;               /* platform dark background */
+  color:#e0e0e0;
+  padding:20px;
+  min-height:100vh;
+}
+.container{
+  max-width:1400px;
+  margin:0 auto;
+  background:#ffffff;               /* keep cards readable */
+  border-radius:12px;
+  padding:30px;
+  box-shadow:0 10px 40px rgba(0,0,0,0.2);
+}
+
+/* -------------------------------------------------
+   Navigation Bar (VivacityAI Studio)
+   ------------------------------------------------- */
+#topNav{
+  background:#1e1e2f;
+  color:#fff;
+  padding:12px 20px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  margin-bottom:20px;
+  border-radius:8px;
+}
+#topNav a{
+  color:#fff;
+  text-decoration:none;
+  font-weight:bold;
+  font-size:1.2rem;
+}
+#topNav button{
+  background:#0078d7;
+  color:#fff;
+  border:none;
+  padding:8px 16px;
+  border-radius:6px;
+  cursor:pointer;
+}
+#topNav button:hover{background:#005a9e;}
+#userInfo{
+  display:flex;
+  align-items:center;
+}
+#userInfo img{
+  width:36px;height:36px;
+  border-radius:50%;
+  margin-right:8px;
+}
+
+/* -------------------------------------------------
+   Original UI (cards, workflow, log, modals …)
+   ------------------------------------------------- */
+h1{color:#333;margin-bottom:20px;text-align:center;}
+#userInput{
+  width:100%;min-height:100px;padding:15px;
+  border:2px solid #ddd;border-radius:8px;
+  font-size:16px;margin-bottom:15px;
+  font-family:inherit;resize:vertical;
+}
+#startBtn{
+  background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);
+  color:#fff;border:none;padding:15px 40px;
+  font-size:16px;font-weight:bold;
+  border-radius:8px;cursor:pointer;
+  display:block;margin:0 auto 30px;
+  transition:transform .2s;
+}
+#startBtn:hover{transform:scale(1.05);}
+#startBtn:disabled{
+  background:#ccc;cursor:not-allowed;transform:scale(1);
+}
+.cards-container{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(280px,1fr));
+  gap:20px;margin-bottom:30px;
+}
+.card{
+  background:#f8f9fa;border:2px solid #e0e0e0;
+  border-radius:12px;padding:20px;
+  position:relative;transition:all .3s;
+}
+.card:hover{
+  box-shadow:0 5px 15px rgba(0,0,0,.1);
+  transform:translateY(-2px);
+}
+.role-title{font-weight:bold;font-size:18px;margin-bottom:10px;color:#333;}
+.card-status{color:#666;font-size:14px;margin-bottom:10px;min-height:40px;}
+.card button{
+  background:#0078d7;color:#fff;border:none;
+  padding:8px 16px;border-radius:6px;
+  cursor:pointer;font-size:14px;width:100%;margin-top:10px;
+}
+.card button:hover{background:#005a9e;}
+.progress-bar{
+  width:100%;height:6px;background:#e0e0e0;
+  border-radius:3px;overflow:hidden;
+  margin-top:10px;visibility:hidden;
+}
+.progress-bar span{
+  display:block;height:100%;
+  background:linear-gradient(90deg,#667eea 0%,#764ba2 100%);
+  width:0%;transition:width .3s ease;
+}
+.workflow-log-container{
+  display:flex;gap:20px;margin-bottom:30px;
+}
+.workflow-diagram{
+  flex:1;background:#f8f9fa;border:2px solid #e0e0e0;
+  border-radius:12px;padding:20px;
+}
+.workflow-title{
+  font-weight:bold;font-size:18px;margin-bottom:15px;
+  text-align:center;color:#333;
+}
+.workflow-visual{display:flex;flex-direction:column;align-items:center;gap:10px;}
+.workflow-row{display:flex;gap:15px;justify-content:center;flex-wrap:wrap;}
+.workflow-node{
+  background:#fff;border:2px solid #667eea;
+  border-radius:8px;padding:10px 20px;
+  font-size:14px;font-weight:600;color:#333;
+  min-width:140px;text-align:center;
+}
+.workflow-arrow{color:#667eea;font-size:24px;font-weight:bold;}
+.log-panel{
+  flex:1;background:#1e1e1e;border:2px solid #e0e0e0;
+  border-radius:12px;padding:20px;color:#00ff00;
+  font-family:'Courier New',monospace;font-size:13px;
+  max-height:400px;overflow-y:auto;white-space:pre-wrap;
+}
+.log-title{
+  color:#00ff00;font-weight:bold;margin-bottom:10px;
+  border-bottom:1px solid #00ff00;padding-bottom:5px;
+}
+#status{
+  background:#e3f2fd;padding:15px;border-radius:8px;
+  margin-bottom:20px;font-weight:500;text-align:center;
+  color:#0078d7;
+}
+#finalOutput{
+  background:#f5f5f5;padding:20px;border-radius:8px;
+  white-space:pre-wrap;font-family:'Courier New',monospace;
+  font-size:13px;max-height:500px;overflow-y:auto;
+  border:1px solid #ddd;
+}
+.modal,.preview-modal{
+  display:none;position:fixed;z-index:1000;left:0;top:0;
+  width:100%;height:100%;background:rgba(0,0,0,.7);
+  overflow:auto;
+}
+.modal-content{
+  background:#fefefe;margin:2% auto;padding:30px;
+  border-radius:12px;width:90%;max-width:900px;
+  position:relative;max-height:90vh;overflow-y:auto;
+}
+.modal-close{
+  position:absolute;right:15px;top:15px;
+  font-size:32px;font-weight:bold;color:#aaa;
+  background:none;border:none;cursor:pointer;
+  width:40px;height:40px;line-height:40px;text-align:center;
+}
+.modal-close:hover{color:#000;}
+#modalTitle{margin-bottom:20px;color:#333;}
+#modalText{
+  background:#f5f5f5;padding:20px;border-radius:8px;
+  white-space:pre-wrap;font-family:'Courier New',monospace;
+  font-size:13px;max-height:60vh;overflow-y:auto;
+  border:1px solid #ddd;margin-bottom:15px;
+}
+#downloadSingle{
+  background:#0078d7;color:#fff;border:none;
+  padding:10px 20px;border-radius:6px;cursor:pointer;
+  font-size:14px;
+}
+#downloadSingle:hover{background:#005a9e;}
+.preview-modal-content{
+  background:#fff;margin:2% auto;width:95%;height:90vh;
+  border-radius:12px;position:relative;display:flex;
+  flex-direction:column;
+}
+.preview-header{
+  background:#333;color:#fff;padding:15px 20px;
+  border-radius:12px 12px 0 0;
+  display:flex;justify-content:space-between;align-items:center;
+}
+.preview-close{
+  background:#ff4444;color:#fff;border:none;
+  padding:8px 20px;border-radius:6px;cursor:pointer;
+  font-size:14px;font-weight:bold;
+}
+.preview-close:hover{background:#cc0000;}
+#previewFrame{flex:1;border:none;width:100%;background:#fff;border-radius:0 0 12px 12px;}
+.button-group{
+  display:flex;gap:10px;justify-content:center;margin-bottom:20px;
+}
+.button-group button{
+  background:#0078d7;color:#fff;border:none;
+  padding:10px 20px;border-radius:6px;cursor:pointer;
+  font-size:14px;font-weight:500;
+}
+.button-group button:hover{background:#005a9e;}
+.button-group button:disabled{background:#ccc;cursor:not-allowed;}
+@media (max-width:768px){
+  .workflow-log-container{flex-direction:column;}
+  .cards-container{grid-template-columns:1fr;}
+}
+</style>
+</head>
+<body>
+
+<!-- ==================== NAVIGATION BAR ==================== -->
+<div id="topNav">
+  <a href="../../index.html">VivacityAI Studio</a>
+  <button id="backDashboardBtn">Back to Dashboard</button>
+  <div id="userInfo">
+    <img id="userAvatar" src="" alt="User">
+    <span id="userName"></span>
+  </div>
+</div>
+
+<div class="container">
+<h1>AI Web Builder Pipeline (Parallel Workflow)</h1>
+
+<textarea id="userInput" placeholder="Describe your website project goals..."></textarea>
+<button id="startBtn">START WORKFLOW</button>
+
+<!-- CARDS GRID -->
+<div class="cards-container" id="cardsContainer">
+  <div class="card" id="card1">
+    <div class="role-title">🌐 Website Strategist</div>
+    <div class="card-status">Waiting...</div>
+    <div class="progress-bar"><span></span></div>
+  </div>
+  <div class="card" id="card2">
+    <div class="role-title">🎨 Frontend Developer</div>
+    <div class="card-status">Waiting...</div>
+    <div class="progress-bar"><span></span></div>
+  </div>
+  <div class="card" id="card3">
+    <div class="role-title">⚙️ Backend Developer</div>
+    <div class="card-status">Waiting...</div>
+    <div class="progress-bar"><span></span></div>
+  </div>
+  <div class="card" id="card4">
+    <div class="role-title">🔎 SEO Strategist</div>
+    <div class="card-status">Waiting...</div>
+    <div class="progress-bar"><span></span></div>
+  </div>
+  <div class="card" id="card5">
+    <div class="role-title">✅ Final Validator</div>
+    <div class="card-status">Waiting...</div>
+    <div class="progress-bar"><span></span></div>
+  </div>
+</div>
+
+<!-- WORKFLOW DIAGRAM + LOG PANEL -->
+<div class="workflow-log-container">
+  <div class="workflow-diagram">
+    <div class="workflow-title">Workflow Structure</div>
+    <div class="workflow-visual">
+      <div class="workflow-row"><div class="workflow-node">User Input</div></div>
+      <div class="workflow-arrow">↓</div>
+      <div class="workflow-row"><div class="workflow-node">🌐 Strategist</div></div>
+      <div class="workflow-arrow">↓</div>
+      <div class="workflow-row"><div class="workflow-node">🎨 Frontend Dev</div></div>
+      <div class="workflow-arrow">↓ ↓</div>
+      <div class="workflow-row">
+        <div class="workflow-node">⚙️ Backend Dev</div>
+        <div class="workflow-node">🔎 SEO Strategist</div>
+      </div>
+      <div class="workflow-arrow">↓ ↓</div>
+      <div class="workflow-row"><div class="workflow-node">✅ Validator</div></div>
+    </div>
+  </div>
+  <div class="log-panel">
+    <div class="log-title">📋 Real-Time Log</div>
+    <div id="logArea"></div>
+  </div>
+</div>
+
+<div class="button-group">
+  <button id="btnPreview" disabled>👁️ Preview Frontend</button>
+  <button id="btnClearLog">🗑️ Clear Log</button>
+</div>
+
+<div id="status"></div>
+<pre id="finalOutput"></pre>
+</div>
+
+<!-- RESPONSE MODAL -->
+<div id="responseModal" class="modal">
+  <div class="modal-content">
+    <button class="modal-close" id="closeModal">×</button>
+    <h3 id="modalTitle"></h3>
+    <pre id="modalText"></pre>
+    <button id="downloadSingle">Download TXT</button>
+  </div>
+</div>
+
+<!-- PREVIEW MODAL -->
+<div id="previewModal" class="preview-modal">
+  <div class="preview-modal-content">
+    <div class="preview-header">
+      <h3>🎨 Frontend Live Preview</h3>
+      <button class="preview-close" id="closePreview">Close Preview</button>
+    </div>
+    <iframe id="previewFrame" title="Live Preview"></iframe>
+  </div>
+</div>
+
+<script>
+/* -------------------------------------------------
+   1️⃣ AUTH & USER INFO
+   ------------------------------------------------- */
+async function checkAuthAndLoadUser() {
+  try {
+    const authRes = await fetch('../../auth.php?action=check', { credentials: 'include' });
+    const authData = await authRes.json();
+
+    if (!authData.logged_in) {
+      window.location.href = '../../index.html';
+      return;
+    }
+
+    // Populate user info in the top bar
+    document.getElementById('userName').textContent = authData.name || 'User';
+    document.getElementById('userAvatar').src = authData.avatar || 'default-avatar.png';
+  } catch (e) {
+    console.error('Auth check failed:', e);
+    window.location.href = '../../index.html';
+  }
+}
+
+/* -------------------------------------------------
+   2️⃣ LOAD CONFIG (API key) & PROMPTS
+   ------------------------------------------------- */
+let apiKey = '';
+async function loadConfig() {
+  const cfgRes = await fetch('../../api.php?action=user_data&type=config', { credentials: 'include' });
+  const cfg = await cfgRes.json();
+  apiKey = cfg.api_key || '';
+}
+async function loadPrompts() {
+  const res = await fetch('prompts.json', { cache: 'no-store' });
+  return res.json();
+}
+
+/* -------------------------------------------------
+   3️⃣ ORIGINAL PIPELINE LOGIC (unchanged, only
+       references to apiKey & loadPrompts updated)
+   ------------------------------------------------- */
+let currentProgressTimers = [];
+let frontendHtmlCode = "";
+let startTime, finishTime;
+
+// Original OpenAI call (kept verbatim)
+async function callOpenAI(apiKey, rolePrompt, userMessage, maxTokens = 800) {
+  const url = "https://api.openai.com/v1/chat/completions";
+  const payload = {
+    model: "gpt-4o-mini",
+    max_tokens: maxTokens,
+    messages: [
+      { role: "system", content: rolePrompt },
+      { role: "user", content: userMessage }
+    ]
+  };
+  const res = await fetch(url, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "Authorization": `Bearer ${apiKey}`
+    },
+    body: JSON.stringify(payload)
+  });
+  const data = await res.json();
+  const content = data.choices?.[0]?.message?.content?.trim() || "Nessuna risposta.";
+  const tokens = data.usage ? data.usage.total_tokens : 0;
+  return { content, tokens };
+}
+
+// Progress bar helpers
+function startProgress(cardId) {
+  const bar = document.querySelector(`#${cardId} .progress-bar`);
+  const span = bar.querySelector("span");
+  bar.style.visibility = "visible";
+  span.style.width = "0%";
+  let width = 0;
+  const timer = setInterval(() => {
+    width += Math.random() * 10;
+    if (width >= 95) width = 95;
+    span.style.width = width + "%";
+  }, 500);
+  currentProgressTimers.push(timer);
+  return timer;
+}
+function finishProgress(cardId, timer) {
+  clearInterval(timer);
+  const bar = document.querySelector(`#${cardId} .progress-bar`);
+  bar.querySelector("span").style.width = "100%";
+  setTimeout(() => (bar.style.visibility = "hidden"), 1500);
+}
+
+// Logging & UI helpers
+function appendLog(message) {
+  const log = document.getElementById("logArea");
+  const time = new Date().toLocaleTimeString();
+  log.textContent += `[${time}] ${message}\n`;
+  log.scrollTop = log.scrollHeight;
+}
+function updateCard(id, message, active = true, tokens = null) {
+  const card = document.getElementById(id);
+  const statusDiv = card.querySelector(".card-status");
+  let displayMsg = message;
+  if (tokens !== null) displayMsg += `\nTokens: ${tokens}`;
+  statusDiv.textContent = displayMsg;
+  statusDiv.style.color = active ? "#0078d7" : "#333";
+  appendLog(`${card.querySelector(".role-title").textContent} → ${message}`);
+}
+function addModalButton(cardId, title, content) {
+  const card = document.getElementById(cardId);
+  const existingBtn = card.querySelector("button");
+  if (existingBtn) existingBtn.remove();
+
+  const btn = document.createElement("button");
+  btn.textContent = "Show Response";
+  btn.onclick = () => openModal(title, content, `${cardId}_response.txt`);
+  card.appendChild(btn);
+}
+function openModal(title, text, fileName) {
+  document.getElementById("modalTitle").textContent = title;
+  document.getElementById("modalText").textContent = text;
+  document.getElementById("responseModal").style.display = "block";
+  document.getElementById("downloadSingle").onclick = () => saveToFile(text, fileName);
+}
+document.getElementById("closeModal").onclick = () => {
+  document.getElementById("responseModal").style.display = "none";
+};
+document.getElementById("btnPreview").onclick = () => {
+  if (frontendHtmlCode) {
+    const frame = document.getElementById("previewFrame");
+    const blob = new Blob([frontendHtmlCode], { type: "text/html" });
+    frame.src = URL.createObjectURL(blob);
+    document.getElementById("previewModal").style.display = "block";
+  }
+};
+document.getElementById("closePreview").onclick = () => {
+  document.getElementById("previewModal").style.display = "none";
+};
+document.getElementById("btnClearLog").onclick = () => {
+  document.getElementById("logArea").textContent = "";
+};
+window.onclick = (e) => {
+  if (e.target == document.getElementById("responseModal")) {
+    document.getElementById("responseModal").style.display = "none";
+  }
+  if (e.target == document.getElementById("previewModal")) {
+    document.getElementById("previewModal").style.display = "none";
+  }
+};
+function setStatus(message) {
+  document.getElementById("status").textContent = message;
+  appendLog(`STATUS: ${message}`);
+}
+function saveToFile(content, name) {
+  const blob = new Blob([content], { type: "text/plain" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = name;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+function extractHTML(fullText) {
+  const match = fullText.match(/<html[\s\S]*<\/html>/i);
+  return match ? match[0] : fullText;
+}
+
+/* -------------------------------------------------
+   4️⃣ SAVE PROJECT TO USER DATA (shared storage)
+   ------------------------------------------------- */
+async function saveProject(report) {
+  try {
+    await fetch('../../api.php?action=user_data', {
+      method: 'POST',
+      credentials: 'include',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ project_report: report })
+    });
+  } catch (e) {
+    console.warn('Project save failed:', e);
+  }
+}
+
+/* -------------------------------------------------
+   5️⃣ MAIN WORKFLOW
+   ------------------------------------------------- */
+async function startWorkflow() {
+  startTime = new Date();
+  const userInput = document.getElementById("userInput").value.trim();
+  if (!userInput) {
+    alert("Please write your project description first!");
+    return;
+  }
+
+  const startBtn = document.getElementById("startBtn");
+  startBtn.disabled = true;
+
+  const out = document.getElementById("finalOutput");
+  out.textContent = "";
+  document.getElementById("logArea").textContent = "";
+  frontendHtmlCode = "";
+  document.getElementById("btnPreview").disabled = true;
+
+  appendLog("Workflow started...");
+
+  const config = await loadPrompts();   // prompts.json in same folder
+  // apiKey already loaded via loadConfig()
+  let res1, res2, res3, res4, res5;
+  let step1, step2, step3, step4, step5;
+
+  try {
+    // ---- STEP 1: Website Strategist ----
+    updateCard("card1", "Processing...");
+    const timer1 = startProgress("card1");
+    setStatus("🌐 Website Strategist working...");
+    res1 = await callOpenAI(
+      apiKey,
+      config.roles.website_strategist.prompt,
+      userInput,
+      config.roles.website_strategist.max_tokens
+    );
+    step1 = res1.content;
+    finishProgress("card1", timer1);
+    updateCard("card1", "✅ Completed", false, res1.tokens);
+    addModalButton("card1", "🌐 Website Strategist", step1);
+
+    // ---- STEP 2: Frontend Developer ----
+    updateCard("card2", "Processing...");
+    const timer2 = startProgress("card2");
+    setStatus("🎨 Frontend Developer working...");
+    res2 = await callOpenAI(
+      apiKey,
+      config.roles.frontend_dev.prompt,
+      step1,
+      config.roles.frontend_dev.max_tokens
+    );
+    step2 = res2.content;
+    frontendHtmlCode = extractHTML(step2);
+    finishProgress("card2", timer2);
+    updateCard("card2", "✅ Completed", false, res2.tokens);
+    addModalButton("card2", "🎨 Frontend Developer", step2);
+    document.getElementById("btnPreview").disabled = false;
+    appendLog("✅ Frontend preview ready!");
+
+    // ---- STEP 3 & 4: Backend & SEO (parallel) ----
+    const combinedInput = `STRATEGIST:\n${step1}\n\n---- FRONTEND CODE ----\n${step2}`;
+    setStatus("⚙️ Backend Developer & 🔎 SEO Strategist working in parallel...");
+
+    updateCard("card3", "Processing...");
+    const timer3 = startProgress("card3");
+    updateCard("card4", "Processing...");
+    const timer4 = startProgress("card4");
+
+    const backendPromise = callOpenAI(
+      apiKey,
+      config.roles.backend_dev.prompt,
+      combinedInput,
+      config.roles.backend_dev.max_tokens
+    );
+    const seoPromise = callOpenAI(
+      apiKey,
+      config.roles.seo_strategist.prompt,
+      combinedInput,
+      config.roles.seo_strategist.max_tokens
+    );
+
+    [res3, res4] = await Promise.all([backendPromise, seoPromise]);
+    step3 = res3.content;
+    step4 = res4.content;
+
+    finishProgress("card3", timer3);
+    updateCard("card3", "✅ Completed", false, res3.tokens);
+    addModalButton("card3", "⚙️ Backend Developer", step3);
+
+    finishProgress("card4", timer4);
+    updateCard("card4", "✅ Completed", false, res4.tokens);
+    addModalButton("card4", "🔎 SEO Strategist", step4);
+
+    // ---- STEP 5: Final Validator ----
+    updateCard("card5", "Final processing...");
+    const timer5 = startProgress("card5");
+    setStatus("✅ Final Validator assembling final package...");
+
+    const finalInput = `STRATEGIST:\n${step1}\n\n---- FRONTEND ----\n${step2}\n\n---- BACKEND ----\n${step3}\n\n---- SEO ----\n${step4}`;
+    res5 = await callOpenAI(
+      apiKey,
+      config.roles.final_validator.prompt,
+      finalInput,
+      config.roles.final_validator.max_tokens
+    );
+    step5 = res5.content;
+
+    finishProgress("card5", timer5);
+    updateCard("card5", "✅ Completed", false, res5.tokens);
+    addModalButton("card5", "✅ Final Validator", step5);
+
+    // ---- REPORT & SAVE ----
+    setStatus("✅ Workflow completed! Creating final report...");
+    finishTime = new Date();
+
+    const totalTokens = res1.tokens + res2.tokens + res3.tokens + res4.tokens + res5.tokens;
+    const report = `
+=========== AI WEB BUILDER - PARALLEL WORKFLOW REPORT =============
+
+Process Started at: ${startTime}
+===================================================================
+
+[1] WEBSITE STRATEGIST OUTPUT
+${step1}
+
+[2] FRONTEND DEVELOPER OUTPUT
+${step2}
+
+[3] BACKEND DEVELOPER OUTPUT
+${step3}
+
+[4] SEO

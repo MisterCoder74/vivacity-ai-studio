@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vivacity AI Canvas</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <!-- Navbar (Studio integration) -->
+    <nav class="navbar">
+        <div class="navbar-content">
+            <div class="navbar-left">   
+                <h1 class="navbar-title"><a href="../../index.html">VivacityAI Studio</a></h1>  
+            </div>        
+            <div class="navbar-right">
+                <!-- Back to Dashboard button -->
+                <button class="navbar-btn" onclick="window.location.href='../../index.html'" title="Back to Dashboard">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M15 18l-6-6 6-6"></path>
+                    </svg>
+                </button>
+
+                <!-- User info (filled after auth check) -->
+                <div class="user-info" id="userInfo" style="display: none;">
+                    <img id="userPicture" class="user-picture" src="" alt="User">
+                    <span id="userName" class="user-name"></span>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- --------------------------------------------------- -->
+    <!-- The rest of the original canvas markup (sidebar,    -->
+    <!-- tool buttons, canvas area, modals, etc.) stays      -->
+    <!-- exactly as it was – only the surrounding <nav> was -->
+    <!-- replaced.                                            -->
+    <!-- --------------------------------------------------- -->
+
+    <!-- Include the external script that now contains all the original logic -->
+    <script src="script.js"></script>
+</body>
+</html>
+```
+
+*All original UI elements (sidebar, canvas, modals, etc.) remain unchanged; they are simply placed after the new navbar.*
+
+---
+
+### 2. JavaScript changes (`tools/canvas/script.js`)
+
+The patch updates **four main areas**:
+
+| Area | What changed | Why |
+|------|--------------|-----|
+| **Auth check** | Added a `DOMContentLoaded` block that calls `../../auth.php?action=check`. If not authenticated, redirects to `../../index.html`. On success, stores `currentUser` and calls `displayUserInfo`. | Integrates with the Studio’s central authentication. |
+| **Config / Canvas persistence** | All `fetch` URLs that previously pointed to local PHP scripts now point to `../../api.php` with the appropriate `action` (`user_data`, `chat`, `image_gen`, etc.). | Centralises all backend calls through the unified API. |
+| **Chat / Image / Analyse calls** | Updated the request URLs to the new API endpoints (`../../api.php?action=chat`, `...image_gen`, `...image_analyze`, `...text_analyze`). | Aligns with the platform’s routing. |
+| **Minor clean‑up** | Removed the old `$version` cache‑busting (now handled by the server) and ensured all `save*` functions still call the new endpoints. | Keeps the code tidy after migration. |
+
+```diff
