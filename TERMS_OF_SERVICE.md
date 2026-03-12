@@ -14,7 +14,7 @@ VivacityAI Studio, operated by Alessandro Demontis / Vivacity Design (www.vi
 3. **Web Agency Pipeline** – AI‑driven web‑project generator (five‑stage pipeline).
 
 ## 3. User Accounts
-- **Login:** Users sign in via Google OAuth. By doing so you permit Vivacity Design to access the basic profile information associated with your Google account.  
+- **Login:** Users sign in via email/password authentication. By doing so you permit Vivacity Design to access the basic profile information associated with your Google account.  
 - **Account Responsibility:** You are responsible for maintaining the confidentiality of your login credentials and for all activity that occurs under your account.  
 - **Data per User:** The Platform stores your Google profile data, usage logs, and any content you create or upload. You must keep this information accurate and up‑to‑date.
 
@@ -31,7 +31,7 @@ You may use the Platform only for lawful, non‑commercial, creative purposes. P
 - **Platform Code:** All software, code, designs, and related intellectual property of VivacityAI Studio remain the exclusive property of Vivacity Design.
 
 ## 6. Third‑Party Services Disclaimer *(Critical Section)*
-- The Platform relies on **OpenAI APIs** (GPT‑4, DALL‑E 3, GPT‑4 Vision) and **Google OAuth**.  
+- The Platform relies on **OpenAI APIs** (GPT‑4, DALL‑E 3, GPT‑4 Vision) and **email/password authentication**.  
 - VivacityAI Studio is **not responsible** for the availability, accuracy, pricing, or any changes to these third‑party services.  
 - You must independently comply with OpenAI’s usage policies and Google’s Terms of Service.  
 - Any costs incurred from OpenAI API usage (including per‑request charges) are **solely your responsibility**.  

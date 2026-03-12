@@ -6,12 +6,10 @@
  */
 
 /* -------------------------------------------------------------------------
- * Google OAuth configuration
+ * Session configuration
  * ------------------------------------------------------------------------- */
-define('GOOGLE_CLIENT_ID',     'YOUR_GOOGLE_CLIENT_ID');
-define('GOOGLE_CLIENT_SECRET', 'YOUR_GOOGLE_CLIENT_SECRET');
-define('GOOGLE_REDIRECT_URI',  'https://yourdomain.com/auth.php?action=callback');
-define('SESSION_NAME',         'vivacity_ai_session');
+define('SESSION_NAME', 'vivacity_ai_studio');
+define('SESSION_LIFETIME', 2592000); // 30 days
 
 /* -------------------------------------------------------------------------
  * OpenAI configuration
@@ -21,26 +19,30 @@ define('OPENAI_API_KEY', 'YOUR_OPENAI_API_KEY');
 /* -------------------------------------------------------------------------
  * File‑system configuration
  * ------------------------------------------------------------------------- */
-define('DATA_FOLDER',        __DIR__ . '/data');               // Root data folder
-define('UPLOAD_FOLDER',      DATA_FOLDER . '/uploads');        // Generic uploads
-define('IMAGE_FOLDER',       DATA_FOLDER . '/images');         // Global images (if needed)
-define('MAX_FILE_SIZE',      500 * 1024 * 1024);               // 500 MiB
-define('ALLOWED_MIME_TYPES', [
-    'image/jpeg',
-    'image/png',
-    'image/gif',
-    'text/plain',
-    'text/csv',
-    'application/json',
-]);
+define('DATA_FOLDER', __DIR__ . '/data');               // Root data folder
+define('UPLOAD_FOLDER', DATA_FOLDER . '/uploads');        // Generic uploads
+define('MAX_FILE_SIZE', 500 * 1024 * 1024);               // 500 MiB
+define('USERS_FILE', DATA_FOLDER . '/users.json');
 
 /* -------------------------------------------------------------------------
- * User‑specific paths (all under DATA_FOLDER/user_<GOOGLE_ID>/)
+ * User configuration
  * ------------------------------------------------------------------------- */
-define('USER_BASE_PATH', DATA_FOLDER . '/user_'); // Append Google ID
+define('PASSWORD_MIN_LENGTH', 8);
 
 /* -------------------------------------------------------------------------
- * Miscellaneous
+ * Helper function to initialize data directory
  * ------------------------------------------------------------------------- */
-date_default_timezone_set('UTC');
+function initDataDir()
+{
+    if (!is_dir(DATA_FOLDER)) {
+        mkdir(DATA_FOLDER, 0755, true);
+    }
+
+    $usersFile = USERS_FILE;
+    if (!file_exists($usersFile)) {
+        file_put_contents($usersFile, json_encode([], JSON_PRETTY_PRINT));
+    }
+}
+
+initDataDir();
 ?>

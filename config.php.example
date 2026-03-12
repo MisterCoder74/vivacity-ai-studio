@@ -6,11 +6,9 @@
  * DO NOT commit config.php to version control!
  */
 
-/* Google OAuth configuration */
-define('GOOGLE_CLIENT_ID',     'YOUR_GOOGLE_CLIENT_ID');
-define('GOOGLE_CLIENT_SECRET', 'YOUR_GOOGLE_CLIENT_SECRET');
-define('GOOGLE_REDIRECT_URI',  'https://yourdomain.com/auth.php?action=callback');
-define('SESSION_NAME',         'vivacity_ai_studio');
+/* Session configuration */
+define('SESSION_NAME', 'vivacity_ai_studio');
+define('SESSION_LIFETIME', 2592000); // 30 days
 
 /* OpenAI API key (fallback - users can set their own via dashboard) */
 define('OPENAI_API_KEY', 'sk-...');
@@ -20,6 +18,20 @@ define('DATA_DIR', __DIR__ . '/data');
 define('UPLOADS_DIR', __DIR__ . '/uploads');
 define('MAX_UPLOAD_SIZE', 10 * 1024 * 1024); // 10MB
 
+/* User management */
+define('USERS_FILE', DATA_DIR . '/users.json');
+define('PASSWORD_MIN_LENGTH', 8);
+
 /* Allowed file types */
 define('ALLOWED_IMAGE_TYPES', ['image/jpeg', 'image/png', 'image/gif', 'image/webp']);
 define('ALLOWED_TEXT_TYPES', ['text/plain', 'text/html', 'text/css', 'text/javascript', 'application/json']);
+
+/* Initialize data directory */
+function initDataDir() {
+    if (!is_dir(DATA_DIR)) {
+        mkdir(DATA_DIR, 0755, true);
+    }
+    if (!file_exists(USERS_FILE)) {
+        file_put_contents(USERS_FILE, json_encode([]));
+    }
+}

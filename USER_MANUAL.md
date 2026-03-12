@@ -4,7 +4,7 @@
 
 ## 🚀 Getting Started  
 
-1. **Log in** – Click **“Sign in with Google”** on the landing page and authenticate with your Google account.  
+1. **Log in** – Click **“Sign in with Google”** on the landing page and authenticate with your email and password.  
 2. **Dashboard overview** – After login you’ll see the main dashboard:  
    - **Three tool cards** (AI Canvas, Éventail AI, Web Agency Pipeline) each with a **Launch** button.  
    - **User info** in the top‑right corner (avatar, name, Google ID).  

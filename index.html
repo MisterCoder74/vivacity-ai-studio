@@ -21,6 +21,7 @@
 html,body{height:100%;font-family:system-ui,Helvetica,Arial,sans-serif;background:var(--bg-dark);color:var(--text-primary);}
 a{color:inherit;text-decoration:none;}
 button{cursor:pointer;border:none;background:none;font:inherit;color:inherit;}
+
 /* ==== NAVBAR ==== */
 .navbar{
     display:flex;justify-content:space-between;align-items:center;
@@ -30,9 +31,6 @@ button{cursor:pointer;border:none;background:none;font:inherit;color:inherit;}
 .navbar .logo{font-size:1.4rem;font-weight:600;color:#fff;}
 .navbar .user{
     display:flex;align-items:center;gap:0.8rem;
-}
-.navbar .user img{
-    width:40px;height:40px;border-radius:50%;object-fit:cover;
 }
 .navbar .user span{font-size:0.95rem;}
 .navbar .user button{
@@ -179,31 +177,130 @@ button{cursor:pointer;border:none;background:none;font:inherit;color:inherit;}
 }
 .settings button:hover{background:#5a5ae0;transform:scale(1.03);}
 
+/* ==== AUTH MODAL ==== */
+.auth-modal{
+    position:fixed;top:0;left:0;width:100%;height:100%;
+    background:rgba(0,0,0,0.5);display:flex;justify-content:center;align-items:center;
+    z-index:1000;
+}
+.auth-card{
+    background:var(--bg-card);
+    border-radius:12px;padding:2rem;
+    width:400px;max-width:90%;
+    box-shadow:0 4px 12px rgba(0,0,0,0.2);
+}
+.auth-card .brand{
+    text-align:center;font-size:1.6rem;font-weight:600;margin-bottom:1rem;color:#fff;
+}
+.auth-card .tabs{
+    display:flex;gap:1rem;border-bottom:1px solid #333;
+}
+.auth-card .tab{
+    padding:0.5rem 1rem;border-bottom:2px solid transparent;
+    cursor:pointer;font-size:0.9rem;color:var(--text-muted);
+}
+.auth-card .tab.active{
+    border-bottom-color:var(--gradient-primary);
+    color:#fff;
+}
+.auth-card .tab-content{
+    padding:1rem 0;
+}
+.auth-card label{
+    display:block;margin-top:0.8rem;font-size:0.9rem;color:var(--text-muted);
+}
+.auth-card input{
+    width:100%;padding:0.5rem;margin-top:0.3rem;
+    border:1px solid #333;border-radius:4px;background:#1a1a24;color:#fff;
+}
+.auth-card button{
+    margin-top:1rem;padding:0.6rem 1rem;background:var(--gradient-primary);
+    color:#fff;border-radius:6px;transition:background .2s,transform .2s;
+}
+.auth-card button:hover{background:#5a5ae0;transform:scale(1.03);}
+.auth-card .error{
+    color:#ff6b6b;font-size:0.8rem;margin-top:0.2rem;
+}
+
+/* ==== SPINNER ==== */
+.spinner{
+    border:4px solid rgba(255,255,255,0.2);
+    border-top:4px solid #fff;
+    border-radius:50%;
+    width:30px;height:30px;
+    animation:spin 1s linear infinite;
+    display:none;
+    margin-left:0.5rem;
+}
+@keyframes spin{to{transform:rotate(360deg);}}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+.main{animation:fadeIn .6s ease-out;}
+
 /* ==== RESPONSIVE ==== */
 @media(max-width:768px){
     .navbar{flex-direction:column;gap:0.5rem;}
     .navbar .user{justify-content:center;}
 }
-
-/* ==== ANIMATIONS ==== */
-@keyframes fadeIn{from{opacity:0}to{opacity:1}}
-.main{animation:fadeIn .6s ease-out;}
 </style>
 </head>
 <body>
+
+<!-- AUTH MODAL -->
+<div class="auth-modal" id="authModal" style="display:none;">
+    <div class="auth-card">
+        <div class="brand">Vivacity AI Studio</div>
+        <div class="tabs">
+            <div class="tab active" data-target="login">Log In</div>
+            <div class="tab" data-target="signup">Sign Up</div>
+        </div>
+
+        <!-- Login Form -->
+        <div id="loginForm" class="tab-content">
+            <label for="loginEmail">Email</label>
+            <input type="email" id="loginEmail" placeholder="you@example.com">
+            <div class="error" id="loginEmailError"></div>
+
+            <label for="loginPassword">Password</label>
+            <input type="password" id="loginPassword" placeholder="••••••••">
+            <div class="error" id="loginPasswordError"></div>
+
+            <button onclick="login()">Log In<span class="spinner" id="loginSpinner"></span></button>
+        </div>
+
+        <!-- Sign‑Up Form -->
+        <div id="signupForm" class="tab-content" style="display:none;">
+            <label for="signupName">Name</label>
+            <input type="text" id="signupName" placeholder="John Doe">
+            <div class="error" id="signupNameError"></div>
+
+            <label for="signupEmail">Email</label>
+            <input type="email" id="signupEmail" placeholder="you@example.com">
+            <div class="error" id="signupEmailError"></div>
+
+            <label for="signupPassword">Password</label>
+            <input type="password" id="signupPassword" placeholder="••••••••">
+            <div class="error" id="signupPasswordError"></div>
+
+            <label for="signupConfirmPassword">Confirm Password</label>
+            <input type="password" id="signupConfirmPassword" placeholder="••••••••">
+            <div class="error" id="signupConfirmPasswordError"></div>
+
+            <button onclick="signup()">Create Account<span class="spinner" id="signupSpinner"></span></button>
+        </div>
+    </div>
+</div>
 
 <!-- NAVBAR -->
 <div class="navbar">
     <div class="logo">Vivacity AI Studio</div>
     <div class="user" id="userInfo" style="display:none;">
-        <img id="userPicture" src="" alt="User">
         <span id="userName"></span>
         <button onclick="logout()">Logout</button>
     </div>
 </div>
 
 <!-- MAIN CONTENT -->
-<div class="main">
+<div class="main" id="mainContent" style="display:none;">
 
     <!-- TOOL CARDS -->
     <section class="tools">
@@ -250,9 +347,7 @@ button{cursor:pointer;border:none;background:none;font:inherit;color:inherit;}
     <!-- ACTIVITY FEED -->
     <section class="activity">
         <h4>Recent Activity</h4>
-        <ul id="activityFeed">
-            <li>Loading activity...</li>
-        </ul>
+        <ul id="activityFeed"><li>Loading activity...</li></ul>
     </section>
 
     <!-- QUICK ACTIONS -->
@@ -266,9 +361,7 @@ button{cursor:pointer;border:none;background:none;font:inherit;color:inherit;}
     <!-- FILE BROWSER -->
     <section class="files">
         <h4>Your Files</h4>
-        <div class="file-list" id="fileList">
-            <div class="file-item">Loading files...</div>
-        </div>
+        <div class="file-list" id="fileList"><div class="file-item">Loading files...</div></div>
     </section>
 
     <!-- SETTINGS PANEL -->
@@ -283,51 +376,149 @@ button{cursor:pointer;border:none;background:none;font:inherit;color:inherit;}
 </div>
 
 <script>
+/* ---------- UTILITIES ---------- */
+function show(element){element.style.display='block';}
+function hide(element){element.style.display='none';}
+
+/* ---------- TAB SWITCHING ---------- */
+document.querySelectorAll('.auth-card .tab').forEach(tab=>{
+    tab.addEventListener('click',()=>{
+        document.querySelectorAll('.auth-card .tab').forEach(t=>t.classList.remove('active'));
+        tab.classList.add('active');
+        const target = tab.dataset.target;
+        if(target==='login'){
+            show(document.getElementById('loginForm'));
+            hide(document.getElementById('signupForm'));
+        }else{
+            show(document.getElementById('signupForm'));
+            hide(document.getElementById('loginForm'));
+        }
+        clearErrors();
+    });
+});
+
+/* ---------- FORM VALIDATION ---------- */
+function clearErrors(){
+    document.querySelectorAll('.error').forEach(e=>e.textContent='');
+}
+function validateEmail(email){
+    const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return re.test(email);
+}
+
+/* ---------- LOGIN ---------- */
+function login(){
+    clearErrors();
+    const email = document.getElementById('loginEmail').value.trim();
+    const password = document.getElementById('loginPassword').value;
+    let valid = true;
+
+    if(!email){document.getElementById('loginEmailError').textContent='Email required';valid=false;}
+    else if(!validateEmail(email)){document.getElementById('loginEmailError').textContent='Invalid email';valid=false;}
+
+    if(!password){document.getElementById('loginPasswordError').textContent='Password required';valid=false;}
+    else if(password.length<8){document.getElementById('loginPasswordError').textContent='Min 8 characters';valid=false;}
+
+    if(!valid) return;
+
+    show(document.getElementById('loginSpinner'));
+    fetch('auth.php?action=login',{
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({email,password})
+    })
+    .then(r=>r.json())
+    .then(d=>{
+        hide(document.getElementById('loginSpinner'));
+        if(d.success){
+            location.reload();
+        }else{
+            document.getElementById('loginPasswordError').textContent = d.message || 'Login failed';
+        }
+    })
+    .catch(()=>{hide(document.getElementById('loginSpinner'));});
+}
+
+/* ---------- SIGN‑UP ---------- */
+function signup(){
+    clearErrors();
+    const name = document.getElementById('signupName').value.trim();
+    const email = document.getElementById('signupEmail').value.trim();
+    const password = document.getElementById('signupPassword').value;
+    const confirm = document.getElementById('signupConfirmPassword').value;
+    let valid = true;
+
+    if(!name){document.getElementById('signupNameError').textContent='Name required';valid=false;}
+    if(!email){document.getElementById('signupEmailError').textContent='Email required';valid=false;}
+    else if(!validateEmail(email)){document.getElementById('signupEmailError').textContent='Invalid email';valid=false;}
+    if(!password){document.getElementById('signupPasswordError').textContent='Password required';valid=false;}
+    else if(password.length<8){document.getElementById('signupPasswordError').textContent='Min 8 characters';valid=false;}
+    if(password!==confirm){document.getElementById('signupConfirmPasswordError').textContent='Passwords do not match';valid=false;}
+
+    if(!valid) return;
+
+    show(document.getElementById('signupSpinner'));
+    fetch('auth.php?action=signup',{
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({name,email,password})
+    })
+    .then(r=>r.json())
+    .then(d=>{
+        hide(document.getElementById('signupSpinner'));
+        if(d.success){
+            location.reload();
+        }else{
+            document.getElementById('signupEmailError').textContent = d.message || 'Sign‑up failed';
+        }
+    })
+    .catch(()=>{hide(document.getElementById('signupSpinner'));});
+}
+
 /* ---------- AUTH CHECK ---------- */
 function checkAuth(){
     fetch('auth.php?action=check')
         .then(r=>r.json())
         .then(data=>{
             if(data.success){
-                document.getElementById('userInfo').style.display='flex';
-                document.getElementById('userName').textContent=data.user.name||data.user.email;
-                document.getElementById('userPicture').src=data.user.picture||'';
+                hide(document.getElementById('authModal'));
+                show(document.getElementById('mainContent'));
+                show(document.getElementById('userInfo'));
+                document.getElementById('userName').textContent = data.user.name || data.user.email;
                 loadDashboardData();
             }else{
-                // Not authenticated – redirect to login page
-                window.location.href='login.html';
+                hide(document.getElementById('mainContent'));
+                show(document.getElementById('authModal'));
             }
         })
-        .catch(()=>{window.location.href='login.html';});
+        .catch(()=>{ // network error – assume not logged in
+            hide(document.getElementById('mainContent'));
+            show(document.getElementById('authModal'));
+        });
 }
 
 /* ---------- LOGOUT ---------- */
 function logout(){
     fetch('auth.php?action=logout')
-        .then(()=>{window.location.href='login.html';})
-        .catch(()=>{window.location.href='login.html';});
+        .then(()=>{location.reload();})
+        .catch(()=>{location.reload();});
 }
 
 /* ---------- OPEN TOOL ---------- */
-function openTool(url){
-    window.location.href=url;
-}
+function openTool(url){window.location.href=url;}
 
 /* ---------- SETTINGS MODAL ---------- */
 function openSettings(){
     document.getElementById('settingsPanel').style.display='block';
-    // Load existing key
     fetch('api.php?action=user_data')
         .then(r=>r.json())
         .then(d=>{ if(d.apiKey) document.getElementById('apiKeyInput').value=d.apiKey; })
         .catch(()=>{});
 }
-function closeSettings(){
-    document.getElementById('settingsPanel').style.display='none';
-}
+function closeSettings(){document.getElementById('settingsPanel').style.display='none';}
 function saveApiKey(){
     const key=document.getElementById('apiKeyInput').value.trim();
-    fetch('api.php?action=user_data', {
+    fetch('api.php?action=user_data',{
         method:'POST',
         headers:{'Content-Type':'application/json'},
         body:JSON.stringify({apiKey:key})
@@ -339,7 +530,7 @@ function saveApiKey(){
 
 /* ---------- LOAD DASHBOARD DATA ---------- */
 function loadDashboardData(){
-    // 1. Stats
+    // Stats
     fetch('api.php?action=stats')
         .then(r=>r.json())
         .then(s=>{
@@ -350,13 +541,13 @@ function loadDashboardData(){
         })
         .catch(()=>{});
 
-    // 2. Activity Feed
+    // Activity Feed
     fetch('api.php?action=activity')
         .then(r=>r.json())
         .then(a=>{
             const ul=document.getElementById('activityFeed');
             ul.innerHTML='';
-            if(a.length===0){ ul.innerHTML='<li>No recent activity.</li>'; return; }
+            if(a.length===0){ul.innerHTML='<li>No recent activity.</li>';return;}
             a.forEach(item=>{
                 const li=document.createElement('li');
                 li.textContent=item;
@@ -365,13 +556,13 @@ function loadDashboardData(){
         })
         .catch(()=>{});
 
-    // 3. File Browser
+    // File Browser
     fetch('api.php?action=files')
         .then(r=>r.json())
         .then(f=>{
             const container=document.getElementById('fileList');
             container.innerHTML='';
-            if(f.length===0){ container.innerHTML='<div class="file-item">No files found.</div>'; return; }
+            if(f.length===0){container.innerHTML='<div class="file-item">No files found.</div>';return;}
             f.forEach(file=>{
                 const div=document.createElement('div');
                 div.className='file-item';

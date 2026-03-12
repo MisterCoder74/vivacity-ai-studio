@@ -18,7 +18,7 @@ AI web builder — generate complete, deployable web projects through a 5-stage 
 ## ✨ Features
 
 - **Unified Dashboard** — one place to launch and manage all tools
-- **Shared Authentication** — Google OAuth 2.0 login across all tools
+- **Shared Authentication** — email/password login across all tools
 - **Shared User Data** — user files, configurations, and API keys shared between tools
 - **Consistent UI** — dark theme with gradient accents, responsive design
 - **Zero Dependencies** — pure vanilla HTML/CSS/JS + PHP backend
@@ -29,7 +29,7 @@ AI web builder — generate complete, deployable web projects through a 5-stage 
 vivacity-ai-studio/
 ├── index.html              # Main dashboard
 ├── config.php              # Shared configuration (API keys, OAuth)
-├── auth.php                # Google OAuth authentication
+├── auth.php                # email/password authentication authentication
 ├── api.php                 # Unified API endpoint
 ├── .gitignore
 ├── tools/
@@ -43,7 +43,7 @@ vivacity-ai-studio/
 │       ├── index.html
 │       └── prompts.json
 └── data/                   # User data (auto-created, gitignored)
-    └── user_{google_id}/
+    └── user_{user_id}/
         ├── config.json
         ├── canvas/
         ├── images/
@@ -69,11 +69,11 @@ vivacity-ai-studio/
 2. **Configure credentials**
    ```bash
    cp config.php.example config.php
-   # Edit config.php with your Google OAuth and OpenAI credentials
+   # Edit config.php with your email/password authentication and OpenAI credentials
    ```
 
-3. **Set up Google OAuth**
-   - Go to [Google Cloud Console](https://console.cloud.google.com/)
+3. **Set up email/password authentication**
+   - Go to [config.php](https://console.cloud.google.com/)
    - Create OAuth 2.0 credentials
    - Set redirect URI to `https://yourdomain.com/auth.php?action=callback`
    - Add Client ID and Secret to `config.php`
@@ -93,7 +93,7 @@ vivacity-ai-studio/
 ## 🔒 Security
 
 - API keys stored server-side per user (not exposed to browser)
-- Google OAuth 2.0 for authentication
+- email/password for authentication
 - Session-based authorization for all API calls
 - User data isolated by Google ID
 - Config file gitignored to prevent credential leaks
@@ -102,7 +102,7 @@ vivacity-ai-studio/
 
 - **Frontend**: Vanilla HTML5, CSS3, JavaScript (ES6+)
 - **Backend**: PHP 7.4+
-- **Auth**: Google OAuth 2.0
+- **Auth**: Email/password signup + login with bcrypt password hashing
 - **AI APIs**: OpenAI (GPT-4, DALL-E 3, GPT-4 Vision)
 - **No frameworks, no dependencies, no build tools**
 

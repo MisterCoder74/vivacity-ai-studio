@@ -26,8 +26,8 @@ if (!isset($_SESSION['user']) || $_SESSION['user']['logged_in'] !== true) {
  * ------------------------------------------------------------------------- */
 function user_path(string $subPath): string
 {
-    $googleId = $_SESSION['user']['google_id'];
-    return USER_BASE_PATH . $googleId . '/' . ltrim($subPath, '/');
+    $userId = $_SESSION['user']['user_id'];
+    return USER_BASE_PATH . $userId . '/' . ltrim($subPath, '/');
 }
 
 /* -------------------------------------------------------------------------
@@ -147,7 +147,7 @@ switch ($action) {
         file_put_contents($fullPath, $imageData);
 
         // Return the *relative* path that can be later fetched via get_image
-        $relativePath = 'data/user_' . $_SESSION['user']['google_id'] . '/images/' . $filename;
+        $relativePath = 'data/user_' . $_SESSION['user']['user_id'] . '/images/' . $filename;
         json_response([
             'success'   => true,
             'imageUrl'  => $relativePath,
@@ -328,7 +328,7 @@ switch ($action) {
         }
 
         // Security: ensure the requested path is inside the user folder
-        $allowedPrefix = 'data/user_' . $_SESSION['user']['google_id'] . '/';
+        $allowedPrefix = 'data/user_' . $_SESSION['user']['user_id'] . '/';
         if (strpos($path, $allowedPrefix) !== 0) {
             json_response(['success' => false, 'error' => 'Accesso non autorizzato'], 403);
         }
@@ -380,30 +380,57 @@ switch ($action) {
             'size_bytes'  => $sizeBytes,
             'size_human'  => format_bytes($sizeBytes),
         ];
-        $metaPath =
+        $metaPath = $cardImgDir . '/' . $filename . '.json';
+        file_put_contents($metaPath, json_encode($metadata, JSON_PRETTY_PRINT));
 
-function handleGetGenerations() {
-    $userId = $_SESSION['google_id'];
-    $dir = DATA_DIR . '/user_' . $userId . '/generations';
+        json_response(['success' => true, 'metadata' => $metadata]);
+        break;
 
-    if (!is_dir($dir)) {
-        echo json_encode(['success' => true, 'generations' => []]);
-        return;
-    }
+    /* -----------------------------------------------------------------
+     * 8️⃣ Get Generations List (optional helper)
+     * ----------------------------------------------------------------- */
+    case 'get_generations':
+        $userId = $_SESSION['user']['user_id'];
+        $dir = USER_BASE_PATH . $userId . '/generations';
 
-    $files = glob($dir . '/*.{jpg,jpeg,png,gif,webp}', GLOB_BRACE);
-    $generations = [];
-    foreach ($files as $file) {
-        $generations[] = [
-            'filename' => basename($file),
-            'url' => 'data/user_' . $userId . '/generations/' . basename($file),
-            'size' => filesize($file),
-            'created' => filemtime($file)
-        ];
-    }
+        if (!is_dir($dir)) {
+            json_response(['success' => true, 'generations' => []]);
+        }
 
-    usort($generations, function($a, $b) { return $b['created'] - $a['created']; });
-    echo json_encode(['success' => true, 'generations' => $generations]);
+        $files = glob($dir . '/*.{jpg,jpeg,png,gif,webp}', GLOB_BRACE);
+        $generations = [];
+        foreach ($files as $file) {
+            $generations[] = [
+                'filename' => basename($file),
+                'url'      => 'data/user_' . $userId . '/generations/' . basename($file),
+                'size'     => filesize($file),
+                'created'  => filemtime($file),
+            ];
+        }
+
+        usort($generations, fn($a, $b) => $b['created'] - $a['created']);
+        json_response(['success' => true, 'generations' => $generations]);
+        break;
+
+    /* -----------------------------------------------------------------
+     * Default – unknown action
+     * ----------------------------------------------------------------- */
+    default:
+        json_response(['success' => false, 'error' => 'Azione non riconosciuta'], 400);
+        break;
 }
 
+/* -------------------------------------------------------------------------
+ * Helper: format bytes into human‑readable string (used in save_card_image)
+ * ------------------------------------------------------------------------- */
+function format_bytes(int $bytes, int $precision = 2): string
+{
+    $units = ['B', 'KB', 'MB', 'GB', 'TB'];
+    $bytes = max($bytes, 0);
+    $pow   = floor(($bytes ? log($bytes) : 0) / log(1024));
+    $pow   = min($pow, count($units) - 1);
+    $bytes /= (1 << (10 * $pow));
+
+    return round($bytes, $precision) . ' ' . $units[$pow];
 }
+?>
